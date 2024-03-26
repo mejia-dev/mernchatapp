@@ -27,7 +27,7 @@ export default function Register() {
   }
 
   return (
-    <div className="bg-blue-50 h-screen flex items-center flex-column">
+    <div className="bg-blue-50 h-screen flex items-center">
       <form className="w-64 mx-auto mb-12" onSubmit={handleSubmit}>
         <input
           value={username}
