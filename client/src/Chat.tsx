@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Avatar from "./Avatar";
 
 export default function Chat() {
   const [ws, setWs] = useState<WebSocket | null>(null);
@@ -42,9 +43,13 @@ export default function Chat() {
 
           MernChat
         </div>
-        {Object.keys(activeUsers).map(userId => (
-          <div className="border-b border-gray-100 py-2">
-            {activeUsers[userId]}
+        {Object.keys(activeUsers).map((userId, key) => (
+          <div className="border-b border-gray-100 py-2 flex items-center gap-2" key={key}>
+            <Avatar 
+              username={activeUsers[userId]} 
+              userId={userId} 
+            />
+            <span>{activeUsers[userId]}</span>
           </div>
         ))}
       </div>
