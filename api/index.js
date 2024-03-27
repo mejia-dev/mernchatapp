@@ -28,9 +28,9 @@ app.get('/test', (req, res) => {
 app.get('/profile', async (req, res) => {
   const token = req.cookies?.token;
   if (token) {
-    jwt.verify(token, jwtSecret, (err, userInfo) => {
+    jwt.verify(token, jwtSecret, {}, (err, userInfo) => {
       if (err) throw err;
-      res.json({ userInfo });
+      res.json(userInfo);
     });
   } else {
     res.status(401).json('no token');
