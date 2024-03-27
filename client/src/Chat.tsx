@@ -44,12 +44,12 @@ export default function Chat() {
           MernChat
         </div>
         {Object.keys(activeUsers).map((userId, key) => (
-          <div className="border-b border-gray-100 py-2 flex items-center gap-2" key={key}>
+          <div className="border-b border-gray-100 py-2 flex items-center gap-2 cursor-pointer" key={key}>
             <Avatar 
               username={activeUsers[userId]} 
               userId={userId} 
             />
-            <span>{activeUsers[userId]}</span>
+            <span className="text-gray-800">{activeUsers[userId]}</span>
           </div>
         ))}
       </div>
