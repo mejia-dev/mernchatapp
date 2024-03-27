@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
+const ws = require('ws');
 
 const User = require('./models/User');
 
@@ -51,7 +52,7 @@ app.post('/login', async (req, res) => {
       });
     }
   }
-})
+});
 
 app.post('/register', async (req, res) => {
   const { username, password } = req.body;
@@ -71,6 +72,12 @@ app.post('/register', async (req, res) => {
     if (err) throw err;
     res.status(500).json('error');
   }
-})
+});
 
-app.listen(4040);
+const server = app.listen(4040);
+
+const wss = new ws.WebSocketServer({server});
+
+wss.on("connection", (connection) => {
+  console.log("Connected");
+});
