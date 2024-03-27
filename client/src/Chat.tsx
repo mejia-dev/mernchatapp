@@ -46,14 +46,19 @@ export default function Chat() {
         {Object.keys(activeUsers).map((userId, key) => (
           <div
             onClick={() => setSelectedChat(userId)}
-            className={"border-b border-gray-100 py-2 pl-4 flex items-center gap-2 cursor-pointer " + (userId === selectedChat ? 'bg-blue-100' : '')}
+            className={"border-b border-gray-100  flex items-center gap-2 cursor-pointer " + (userId === selectedChat ? 'bg-blue-100' : '')}
             key={key}
           >
-            <Avatar
-              username={activeUsers[userId]}
-              userId={userId}
-            />
-            <span className="text-gray-800">{activeUsers[userId]}</span>
+            {userId === selectedChat && (
+              <div className="w-1 bg-blue-500 h-12 rounded-r-lg"></div>
+            )}
+            <div className="flex gap-2 py-2 pl-4 items-center">
+              <Avatar
+                username={activeUsers[userId]}
+                userId={userId}
+              />
+              <span className="text-gray-800">{activeUsers[userId]}</span>
+            </div>
           </div>
         ))}
       </div>
