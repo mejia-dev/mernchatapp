@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Avatar from "./Avatar";
 import Logo from "./Logo";
+import { UserContext } from "./UserContext";
 
 export default function Chat() {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [activeUsers, setActiveUsers] = useState<{ [key: string]: string }>({});
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
-
+  const {id}: {[id: string]: string} = useContext(UserContext);
   useEffect(() => {
     const newWs: WebSocket = new WebSocket('ws://localhost:4040');
     setWs(newWs);
@@ -29,7 +30,10 @@ export default function Chat() {
   function getActiveUsers(userListObj: any): void {
     const activeUserObj: { [userId: string]: string } = {};
     userListObj.forEach(({ userId, username }: UserSession) => {
-      activeUserObj[userId] = username;
+      if (userId != id) {
+        activeUserObj[userId] = username;
+      }
+      
     })
     setActiveUsers(activeUserObj);
   }
@@ -38,6 +42,7 @@ export default function Chat() {
     <div className="flex h-screen">
       <div className="bg-white w-1/3">
         <Logo />
+        
         {Object.keys(activeUsers).map((userId, key) => (
           <div
             onClick={() => setSelectedChat(userId)}
