@@ -64,7 +64,11 @@ export default function Chat() {
       </div>
       <div className=" flex flex-col bg-blue-50 w-2/3 p-2">
         <div className="flex-grow">
-          messages with contact
+          {!selectedChat && (
+            <div className="flex h-full flex-grow items-center justify-center">
+              <div className="text-gray-400">&larr; Select a chat</div>
+            </div>
+          )}
         </div>
         <div className="flex gap-1">
           <input
