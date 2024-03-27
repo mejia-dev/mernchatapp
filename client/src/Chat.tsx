@@ -4,7 +4,7 @@ import Avatar from "./Avatar";
 export default function Chat() {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [activeUsers, setActiveUsers] = useState<{ [key: string]: string }>({});
-
+  const [selectedChat, setSelectedChat] = useState<string | null>(null);
 
   useEffect(() => {
     const newWs: WebSocket = new WebSocket('ws://localhost:4040');
@@ -44,10 +44,14 @@ export default function Chat() {
           MernChat
         </div>
         {Object.keys(activeUsers).map((userId, key) => (
-          <div className="border-b border-gray-100 py-2 flex items-center gap-2 cursor-pointer" key={key}>
-            <Avatar 
-              username={activeUsers[userId]} 
-              userId={userId} 
+          <div 
+            onClick={() => setSelectedChat(userId)}
+            className={"border-b border-gray-100 py-2 flex items-center gap-2 cursor-pointer " + (userId === selectedChat ? 'bg-blue-100': '')}
+            key={key}
+          >
+            <Avatar
+              username={activeUsers[userId]}
+              userId={userId}
             />
             <span className="text-gray-800">{activeUsers[userId]}</span>
           </div>
