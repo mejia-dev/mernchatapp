@@ -49,7 +49,7 @@ export default function Chat() {
       getActiveUsers(messageData.online);
     } else if ('text' in messageData) {
       if (messageData.sender === selectedRecipientId)
-      setMessageList([...messageList, {...messageData}]);
+      setMessageList(prev => ([...prev, {...messageData}]));
     }
   }
 
@@ -60,7 +60,7 @@ export default function Chat() {
       messageText: newMessageText
     }));
     setNewMessageText("");
-    setMessageList([...messageList, {
+    setMessageList(prev => [...prev, {
       text: newMessageText,
       sender: id,
       recipient: selectedRecipientId,
