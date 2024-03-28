@@ -81,11 +81,11 @@ export default function Chat() {
       <div className="bg-white w-1/3">
         <Logo />
 
-        {Object.keys(activeUsers).map((userId, key) => (
+        {Object.keys(activeUsers).map((userId) => (
           <div
             onClick={() => setSelectedRecipientId(userId)}
             className={"border-b border-gray-100  flex items-center gap-2 cursor-pointer " + (userId === selectedRecipientId ? 'bg-blue-100' : '')}
-            key={key}
+            key={userId}
           >
             {userId === selectedRecipientId && (
               <div className="w-1 bg-blue-500 h-12 rounded-r-lg"></div>
@@ -107,11 +107,6 @@ export default function Chat() {
               <div className="text-gray-400">&larr; Select a chat</div>
             </div>
           )}
-          {/* {!!selectedRecipientId && (
-            <div>{messageList.map((msg: any, key: number) => (
-              <div key={key}>{msg.text}</div>
-            ))}</div>
-          )} */}
           {!!selectedRecipientId && (
             <div className="relative h-full">
               <div className="overflow-y-scroll absolute top-0 left-0 right-0 bottom-2">
