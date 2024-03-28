@@ -42,14 +42,19 @@ app.get('/test', (req, res) => {
 });
 
 app.get('/messages/:userId', async (req, res) => {
-  const {userId} = req.params;
+  const { userId } = req.params;
   const userInfo = await getUserInfoFromRequest(req);
   const requestingUserId = userInfo.userId;
   const messageList = await Message.find({
-    sender:{$in:[userId,requestingUserId]},
-    recipient:{$in:[userId,requestingUserId]},
-  }).sort({createdAt: 1});
+    sender: { $in: [userId, requestingUserId] },
+    recipient: { $in: [userId, requestingUserId] },
+  }).sort({ createdAt: 1 });
   res.json(messageList);
+});
+
+app.get('/users', async (req, res) => {
+  const users = await User.find({}, { '_id': 1, username: 1 });
+  res.json(users);
 });
 
 app.get('/profile', async (req, res) => {
@@ -102,7 +107,7 @@ app.post('/register', async (req, res) => {
 
 const server = app.listen(4040);
 
-const wss = new ws.WebSocketServer({server});
+const wss = new ws.WebSocketServer({ server });
 
 wss.on("connection", (connection, req) => {
   const cookies = req.headers.cookie;
@@ -113,7 +118,7 @@ wss.on("connection", (connection, req) => {
       if (token) {
         jwt.verify(token, jwtSecret, {}, (err, userInfo) => {
           if (err) throw err;
-          const {userId, username} = userInfo;
+          const { userId, username } = userInfo;
           connection.userId = userId;
           connection.username = username;
         });
@@ -123,7 +128,7 @@ wss.on("connection", (connection, req) => {
 
   connection.on('message', async (message) => {
     const messageData = JSON.parse(message.toString());
-    const {recipientId, messageText} = messageData;
+    const { recipientId, messageText } = messageData;
     if (recipientId && messageText) {
       const messageDoc = await Message.create({
         sender: connection.userId,
@@ -134,7 +139,7 @@ wss.on("connection", (connection, req) => {
         .filter(c => c.userId === recipientId)
         .forEach(c => c.send(JSON.stringify({
           text: messageText,
-          sender:connection.userId,
+          sender: connection.userId,
           recipient: recipientId,
           _id: messageDoc._id
         })));
@@ -144,11 +149,11 @@ wss.on("connection", (connection, req) => {
   function notifyAboutActiveUsers() {
     [...wss.clients].forEach(cl => {
       cl.send(JSON.stringify({
-        online: [...wss.clients].map(cl => ({userId:cl.userId, username:cl.username}))
+        online: [...wss.clients].map(cl => ({ userId: cl.userId, username: cl.username }))
       }));
     });
   }
 
   notifyAboutActiveUsers();
-  
+
 });
