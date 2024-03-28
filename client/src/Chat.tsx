@@ -13,28 +13,18 @@ export default function Chat() {
   const [messageList, setMessageList] = useState<object[]>([]);
 
   useEffect(() => {
+    connectToWebSocket();
+  }, [selectedRecipientId]);
+
+  function connectToWebSocket(): void {
     const newWs: WebSocket = new WebSocket('ws://localhost:4040');
     setWs(newWs);
     newWs.addEventListener('message', handleMessage)
-  }, []);
-
-  useEffect(() => {
-    if (selectedRecipientId) {
-      axios.get('/messages/'+selectedRecipientId).then(res => {
-        setMessageList(res.data);
-      });
-    }
-  }, [selectedRecipientId]);
-
-  function handleMessage(e: any): void {
-    const messageData: any = JSON.parse(e.data);
-    console.log({e,messageData});
-    if ('online' in messageData) {
-      getActiveUsers(messageData.online);
-    } else if ('text' in messageData) {
-      if (messageData.sender === selectedRecipientId)
-      setMessageList([...messageList, {...messageData}]);
-    }
+    newWs.addEventListener('close', () => {
+      setTimeout(() => {
+        connectToWebSocket();
+      }, 1000)
+    })
   }
 
   type UserSession = {
@@ -48,9 +38,19 @@ export default function Chat() {
       if (userId != id) {
         activeUserObj[userId] = username;
       }
-
     })
     setActiveUsers(activeUserObj);
+  }
+
+  function handleMessage(e: any): void {
+    const messageData: any = JSON.parse(e.data);
+    console.log({e,messageData});
+    if ('online' in messageData) {
+      getActiveUsers(messageData.online);
+    } else if ('text' in messageData) {
+      if (messageData.sender === selectedRecipientId)
+      setMessageList([...messageList, {...messageData}]);
+    }
   }
 
   function sendMessage(e: any): void {
@@ -61,12 +61,20 @@ export default function Chat() {
     }));
     setNewMessageText("");
     setMessageList([...messageList, {
-      messageText: newMessageText,
+      text: newMessageText,
       sender: id,
       recipient: selectedRecipientId,
       _id: Date.now()
     }]);
   }
+
+  useEffect(() => {
+    if (selectedRecipientId) {
+      axios.get('/messages/'+selectedRecipientId).then(res => {
+        setMessageList(res.data);
+      });
+    }
+  }, [selectedRecipientId]);
 
   return (
     <div className="flex h-screen">
@@ -99,10 +107,24 @@ export default function Chat() {
               <div className="text-gray-400">&larr; Select a chat</div>
             </div>
           )}
-          {!!selectedRecipientId && (
-            <div>{messageList.map((msg: any) => (
-              <div key={msg}>{msg.messageText}</div>
+          {/* {!!selectedRecipientId && (
+            <div>{messageList.map((msg: any, key: number) => (
+              <div key={key}>{msg.text}</div>
             ))}</div>
+          )} */}
+          {!!selectedRecipientId && (
+            <div className="relative h-full">
+              <div className="overflow-y-scroll absolute top-0 left-0 right-0 bottom-2">
+                {messageList.map((message: any) => (
+                  <div key={message._id} className={(message.sender === id ? 'text-right': 'text-left')}>
+                    <div className={"text-left inline-block p-2 my-2 rounded-md text-sm " +(message.sender === id ? 'bg-blue-500 text-white':'bg-white text-gray-500')}>
+                      {message.text}
+                    </div>
+                  </div>
+                ))}
+                <div></div>
+              </div>
+            </div>
           )}
         </div>
         {!!selectedRecipientId && (
