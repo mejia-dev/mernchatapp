@@ -1,12 +1,13 @@
 import { useContext, useEffect, useState } from "react";
-import Avatar from "./Avatar";
 import Logo from "./Logo";
 import { UserContext } from "./UserContext";
 import axios from "axios";
+import Contact from "./Contact";
 
 export default function Chat() {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [activeUsers, setActiveUsers] = useState<{ [key: string]: string }>({});
+  const [inactiveUsers, setInactiveUsers] = useState<{ [key: string]: string }>({});
   const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(null);
   const { id } = useContext<{ [id: string]: string }>(UserContext);
   const [newMessageText, setNewMessageText] = useState<string>("");
@@ -32,21 +33,22 @@ export default function Chat() {
     username: string;
   }
 
-  function getActiveUsers(userListObj: any): void {
+  function getUserStatuses(userListObj: any): void {
     const activeUserObj: { [userId: string]: string } = {};
     userListObj.forEach(({ userId, username }: UserSession) => {
       if (userId != id) {
         activeUserObj[userId] = username;
       }
-    })
+    });
     setActiveUsers(activeUserObj);
+    
   }
 
   function handleMessage(e: any): void {
     const messageData: any = JSON.parse(e.data);
-    console.log({ e, messageData });
+    // console.log({ e, messageData });
     if ("online" in messageData) {
-      getActiveUsers(messageData.online);
+      getUserStatuses(messageData.online);
     } else if ("text" in messageData) {
       if (messageData.sender === selectedRecipientId)
         setMessageList(prev => ([...prev, { ...messageData }]));
@@ -69,6 +71,18 @@ export default function Chat() {
   }
 
   useEffect(() => {
+    axios.get('/users').then(res => {
+      const inactiveArray: string[] = res.data
+        .filter((usr: any) => usr._id != id && !Object.keys(activeUsers).includes(usr._id));
+      const inactiveObject: any = {};
+      inactiveArray.forEach((usr: any) => {
+        inactiveObject[usr._id] = usr.username;
+      })
+      setInactiveUsers(inactiveObject);
+    });
+  }, [activeUsers]);
+
+  useEffect(() => {
     document.getElementById("messageChatScroller")?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messageList])
 
@@ -86,23 +100,24 @@ export default function Chat() {
         <Logo />
 
         {Object.keys(activeUsers).map((userId) => (
-          <div
-            onClick={() => setSelectedRecipientId(userId)}
-            className={"border-b border-gray-100  flex items-center gap-2 cursor-pointer " + (userId === selectedRecipientId ? "bg-blue-100" : "")}
+          <Contact
+            id = {userId}
+            username = {activeUsers[userId]}
+            onClickFn = {() => setSelectedRecipientId(userId)}
+            isSelected = {userId === selectedRecipientId}
+            isOnline = {true}
             key={userId}
-          >
-            {userId === selectedRecipientId && (
-              <div className="w-1 bg-blue-500 h-12 rounded-r-lg"></div>
-            )}
-            <div className="flex gap-2 py-2 pl-4 items-center">
-              <Avatar
-                online = {true}
-                username={activeUsers[userId]}
-                userId={userId}
-              />
-              <span className="text-gray-800">{activeUsers[userId]}</span>
-            </div>
-          </div>
+          />
+        ))}
+        {Object.keys(inactiveUsers).map((userId) => (
+          <Contact
+            id = {userId}
+            username = {inactiveUsers[userId]}
+            onClickFn = {() => setSelectedRecipientId(userId)}
+            isSelected = {userId === selectedRecipientId}
+            isOnline = {false}
+            key={userId}
+          />
         ))}
       </div>
       <div className=" flex flex-col bg-blue-50 w-2/3 p-2">
