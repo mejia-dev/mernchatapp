@@ -5,8 +5,8 @@ import { UserContext } from "./UserContext";
 export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoginOrRegister, setIsLoginOrRegister] = useState("Register");
-  const [formChangeText, setFormChangeText] = useState("Already a member? Login here");
+  const [isLoginOrRegister, setIsLoginOrRegister] = useState("Login");
+  const [formChangeText, setFormChangeText] = useState("Need an account? Register here");
   const { setUsername: setLoggedInUsername, setId }: any = useContext(UserContext);
 
   async function handleSubmit(e: any) {
