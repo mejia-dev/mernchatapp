@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import Avatar from "./Avatar";
 import Logo from "./Logo";
 import { UserContext } from "./UserContext";
+import axios from "axios";
 
 export default function Chat() {
   const [ws, setWs] = useState<WebSocket | null>(null);
@@ -9,6 +10,7 @@ export default function Chat() {
   const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(null);
   const { id } = useContext<{ [id: string]: string }>(UserContext);
   const [newMessageText, setNewMessageText] = useState<string>("");
+  const [messageList, setMessageList] = useState<object[]>([]);
 
   useEffect(() => {
     const newWs: WebSocket = new WebSocket('ws://localhost:4040');
@@ -16,11 +18,22 @@ export default function Chat() {
     newWs.addEventListener('message', handleMessage)
   }, []);
 
+  useEffect(() => {
+    if (selectedRecipientId) {
+      axios.get('/messages/'+selectedRecipientId).then(res => {
+        setMessageList(res.data);
+      });
+    }
+  }, [selectedRecipientId]);
+
   function handleMessage(e: any): void {
-    const messageData: object = JSON.parse(e.data);
+    const messageData: any = JSON.parse(e.data);
+    console.log({e,messageData});
     if ('online' in messageData) {
       getActiveUsers(messageData.online);
-
+    } else if ('text' in messageData) {
+      if (messageData.sender === selectedRecipientId)
+      setMessageList([...messageList, {...messageData}]);
     }
   }
 
@@ -44,9 +57,15 @@ export default function Chat() {
     e.preventDefault();
     ws?.send(JSON.stringify({
       recipientId: selectedRecipientId,
-      messageSubject: "",
       messageText: newMessageText
-    }))
+    }));
+    setNewMessageText("");
+    setMessageList([...messageList, {
+      messageText: newMessageText,
+      sender: id,
+      recipient: selectedRecipientId,
+      _id: Date.now()
+    }]);
   }
 
   return (
@@ -79,6 +98,11 @@ export default function Chat() {
             <div className="flex h-full flex-grow items-center justify-center">
               <div className="text-gray-400">&larr; Select a chat</div>
             </div>
+          )}
+          {!!selectedRecipientId && (
+            <div>{messageList.map((msg: any) => (
+              <div key={msg}>{msg.messageText}</div>
+            ))}</div>
           )}
         </div>
         {!!selectedRecipientId && (
