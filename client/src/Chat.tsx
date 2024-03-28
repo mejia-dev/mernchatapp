@@ -17,10 +17,10 @@ export default function Chat() {
   }, [selectedRecipientId]);
 
   function connectToWebSocket(): void {
-    const newWs: WebSocket = new WebSocket('ws://localhost:4040');
+    const newWs: WebSocket = new WebSocket("ws://localhost:4040");
     setWs(newWs);
-    newWs.addEventListener('message', handleMessage)
-    newWs.addEventListener('close', () => {
+    newWs.addEventListener("message", handleMessage)
+    newWs.addEventListener("close", () => {
       setTimeout(() => {
         connectToWebSocket();
       }, 1000)
@@ -44,12 +44,12 @@ export default function Chat() {
 
   function handleMessage(e: any): void {
     const messageData: any = JSON.parse(e.data);
-    console.log({e,messageData});
-    if ('online' in messageData) {
+    console.log({ e, messageData });
+    if ("online" in messageData) {
       getActiveUsers(messageData.online);
-    } else if ('text' in messageData) {
+    } else if ("text" in messageData) {
       if (messageData.sender === selectedRecipientId)
-      setMessageList(prev => ([...prev, {...messageData}]));
+        setMessageList(prev => ([...prev, { ...messageData }]));
     }
   }
 
@@ -69,8 +69,12 @@ export default function Chat() {
   }
 
   useEffect(() => {
+    document.getElementById("messageChatScroller")?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messageList])
+
+  useEffect(() => {
     if (selectedRecipientId) {
-      axios.get('/messages/'+selectedRecipientId).then(res => {
+      axios.get("/messages/" + selectedRecipientId).then(res => {
         setMessageList(res.data);
       });
     }
@@ -84,7 +88,7 @@ export default function Chat() {
         {Object.keys(activeUsers).map((userId) => (
           <div
             onClick={() => setSelectedRecipientId(userId)}
-            className={"border-b border-gray-100  flex items-center gap-2 cursor-pointer " + (userId === selectedRecipientId ? 'bg-blue-100' : '')}
+            className={"border-b border-gray-100  flex items-center gap-2 cursor-pointer " + (userId === selectedRecipientId ? "bg-blue-100" : "")}
             key={userId}
           >
             {userId === selectedRecipientId && (
@@ -111,13 +115,13 @@ export default function Chat() {
             <div className="relative h-full">
               <div className="overflow-y-scroll absolute top-0 left-0 right-0 bottom-2">
                 {messageList.map((message: any) => (
-                  <div key={message._id} className={(message.sender === id ? 'text-right': 'text-left')}>
-                    <div className={"text-left inline-block p-2 my-2 rounded-md text-sm " +(message.sender === id ? 'bg-blue-500 text-white':'bg-white text-gray-500')}>
+                  <div key={message._id} className={(message.sender === id ? "text-right" : "text-left")}>
+                    <div className={"text-left inline-block p-2 my-2 rounded-md text-sm " + (message.sender === id ? "bg-blue-500 text-white" : "bg-white text-gray-500")}>
                       {message.text}
                     </div>
                   </div>
                 ))}
-                <div></div>
+                <div id="messageChatScroller"></div>
               </div>
             </div>
           )}
