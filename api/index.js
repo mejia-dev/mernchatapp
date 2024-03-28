@@ -8,6 +8,7 @@ const bcrypt = require('bcryptjs');
 const ws = require('ws');
 
 const User = require('./models/User');
+const Message = require('./models/Message');
 
 dotenv.config();
 mongoose.connect(process.env.MONGO_URL);
@@ -22,9 +23,34 @@ app.use(cors({
   origin: process.env.CLIENT_URL
 }));
 
+async function getUserInfoFromRequest(req) {
+  return new Promise((resolve, reject) => {
+    const jwtCookie = req.cookies?.token;
+    if (jwtCookie) {
+      jwt.verify(jwtCookie, jwtSecret, {}, (err, userInfo) => {
+        if (err) throw err;
+        resolve(userInfo);
+      });
+    } else {
+      reject('no token');
+    }
+  });
+}
+
 app.get('/test', (req, res) => {
   res.json('test ok');
-})
+});
+
+app.get('/messages/:userId', async (req, res) => {
+  const {userId} = req.params;
+  const userInfo = await getUserInfoFromRequest(req);
+  const requestingUserId = userInfo.userId;
+  const messageList = await Message.find({
+    sender:{$in:[userId,requestingUserId]},
+    recipient:{$in:[userId,requestingUserId]},
+  }).sort({createdAt: 1});
+  res.json(messageList);
+});
 
 app.get('/profile', async (req, res) => {
   const token = req.cookies?.token;
@@ -95,19 +121,33 @@ wss.on("connection", (connection, req) => {
     }
   }
 
-  connection.on('message', (message) => {
+  connection.on('message', async (message) => {
     const messageData = JSON.parse(message.toString());
     const {recipientId, messageText} = messageData;
     if (recipientId && messageText) {
+      const messageDoc = await Message.create({
+        sender: connection.userId,
+        recipient: recipientId,
+        text: messageText,
+      });
       [...wss.clients]
         .filter(c => c.userId === recipientId)
-        .forEach(c => c.send(JSON.stringify({text})));
+        .forEach(c => c.send(JSON.stringify({
+          messageText,
+          sender:connection.userId,
+          _id: messageDoc._id
+        })));
     }
   });
 
-  [...wss.clients].forEach(cl => {
-    cl.send(JSON.stringify({
-      online: [...wss.clients].map(cl => ({userId:cl.userId, username:cl.username}))
-    }));
-  });
+  function notifyAboutActiveUsers() {
+    [...wss.clients].forEach(cl => {
+      cl.send(JSON.stringify({
+        online: [...wss.clients].map(cl => ({userId:cl.userId, username:cl.username}))
+      }));
+    });
+  }
+
+  notifyAboutActiveUsers();
+  
 });
