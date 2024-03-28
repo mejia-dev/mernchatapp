@@ -96,6 +96,7 @@ export default function Chat() {
             )}
             <div className="flex gap-2 py-2 pl-4 items-center">
               <Avatar
+                online = {true}
                 username={activeUsers[userId]}
                 userId={userId}
               />
