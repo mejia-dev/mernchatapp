@@ -110,6 +110,23 @@ const server = app.listen(4040);
 const wss = new ws.WebSocketServer({ server });
 
 wss.on("connection", (connection, req) => {
+
+  connection.isAlive = true;
+
+  connection.timer = setInterval(() => {
+    connection.ping();
+    connection.deathTimer = setTimeout(() => {
+      connection.isAlive = false;
+      clearInterval(connection.timer);
+      connection.terminate();
+      notifyAboutActiveUsers();
+    }, 1000);
+  }, 5000);
+
+  connection.on('pong', () => {
+    clearTimeout(connection.deathTimer);
+  });
+
   const cookies = req.headers.cookie;
   if (cookies) {
     const tokenCookieString = cookies.split(';').find(str => str.startsWith('token='));
