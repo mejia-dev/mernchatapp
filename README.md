@@ -86,7 +86,7 @@ To generate a built version of the application, use `npm run build`.
 
 MIT License
 
-Copyright (c) 2024 github.com/mejia-dev
+Copyright (c) 2024 Aaron Mejia
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
